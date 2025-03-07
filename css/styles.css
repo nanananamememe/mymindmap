@@ -1,0 +1,60 @@
+body {
+    background-color: #f0f0f0;
+}
+
+.node {
+    width: 150px;
+    height: 80px;
+    background-color: #eeeeee;
+    border: 1px solid black;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+}
+
+.node-text {
+    width: 70%;
+    height: 60%;
+    border-radius: 6px;
+    padding: 5px;
+}
+
+.node-text.editing {
+    border: 1px dashed black;
+    background-color: #f8f8f8;
+}
+
+.connection {
+    stroke: black;
+    fill: none;
+    stroke-width: 2;
+}
+
+#mindmap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0; /* 接続線は背景に */
+}
+
+.node {
+    z-index: 1; /* ノードは接続線より前面に */
+}
+
+.node-delete {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 20px;
+    height: 20px;
+    background-color: #aaa;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+}
