@@ -4,10 +4,212 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>マインドマップアプリ</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .node {
+            width: 150px;
+            height: 80px;
+            background-color: #eeeeee;
+            border: 1px solid #000000;
+            border-radius: 10px; /* 角丸を追加 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .node-text {
+            width: 70%;
+            height: 60%;
+            border-radius: 6px; /* テキスト部分も角丸に */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed transparent;
+            padding: 2px;
+            text-align: center;
+        }
+        .node-text:focus {
+            outline: none; /* ブラウザデフォルトのアウトラインを消す */
+            border: 1px dashed #666; /* フォーカス時に点線の枠を表示 */
+            background-color: #f8f8f8;
+        }
+        .line {
+            stroke: #000000;
+            fill: none;
+        }
+    </style>
 </head>
 <body>
-    <svg id="mindmap" width="100%" height="100%"></svg>
-    <script src="js/app.js"></script>
+    <svg id="svg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></svg>
+    <script>
+        window.onload = () => {
+            createNode(window.innerWidth / 2 - 75, window.innerHeight / 2 - 40);
+        };
+
+        let isDragging = false;
+        let currentNode = null;
+        let offsetX, offsetY;
+        let wasDragged = false; // グローバル変数として定義
+
+        // ノードの親子関係を追跡するためのMap
+        const nodeRelations = new Map();
+        
+        function createNode(x, y) {
+            // ノード本体を作成
+            const node = document.createElement('div');
+            node.className = 'node';
+            node.style.left = `${x}px`;
+            node.style.top = `${y}px`;
+            document.body.appendChild(node);
+            
+            // テキスト部分を別要素として作成
+            const textElement = document.createElement('span');
+            textElement.className = 'node-text';
+            textElement.contentEditable = true;
+            textElement.innerText = '新しいノード';
+            node.appendChild(textElement);
+
+            // 削除ボタンを作成
+            const deleteButton = document.createElement('div');
+            deleteButton.style.position = 'absolute';
+            deleteButton.style.top = '5px';
+            deleteButton.style.right = '5px';
+            // 初期ノード以外の場合のみ削除ボタンを表示
+            if (currentNode) {
+            deleteButton.style.width = '15px';
+            deleteButton.style.height = '15px';
+            deleteButton.style.backgroundColor = '#999';
+            deleteButton.style.borderRadius = '50%';
+            deleteButton.style.display = 'flex';
+            deleteButton.style.justifyContent = 'center';
+            deleteButton.style.alignItems = 'center';
+            deleteButton.style.color = '#fff';
+            deleteButton.style.cursor = 'pointer';
+            
+            // xをspanタグで囲み、上に1px移動させる
+            const xSpan = document.createElement('span');
+            xSpan.innerText = 'x';
+            xSpan.style.position = 'relative';
+            xSpan.style.top = '-1px';
+            deleteButton.appendChild(xSpan);
+            
+            node.appendChild(deleteButton);
+
+            // 削除ボタンのクリックイベント
+            deleteButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            node.remove();
+            nodeRelations.delete(node);
+            updateConnections();
+            });
+            }
+            
+            // 親ノードが存在する場合、関係を記録して線を描画
+            if (currentNode) {
+            nodeRelations.set(node, currentNode);
+            drawLine(currentNode, node);
+            }
+            
+            // テキスト部分のクリックイベント（編集モードに入る）
+            textElement.addEventListener('click', (e) => {
+            e.stopPropagation(); // ノード本体へのイベント伝播を防止
+            textElement.focus();
+            });
+            
+            // テキスト部分でのマウスダウンイベントをキャッチして、親へのイベント伝播を防ぐ
+            textElement.addEventListener('mousedown', (e) => {
+            e.stopPropagation(); // ノード全体のドラッグを防止
+            });
+            
+            // 編集中フラグの管理
+            textElement.isEditing = false;
+            textElement.addEventListener('focus', () => {
+            textElement.isEditing = true;
+            });
+            textElement.addEventListener('blur', () => {
+            textElement.isEditing = false;
+            });
+            
+            // ノード本体のクリックイベント（余白クリック→新しいノード作成）
+            node.addEventListener('click', (e) => {
+            if (!wasDragged) {  // ドラッグされていない場合のみ
+            e.stopPropagation();
+            currentNode = node;
+            createNode(parseInt(node.style.left) + 200, parseInt(node.style.top));
+            }
+            wasDragged = false;
+            });
+            
+            makeDraggable(node);
+        }
+
+        function makeDraggable(node) {
+            
+            node.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                wasDragged = false; // ドラッグ開始時にリセット
+                currentNode = node; // ドラッグ開始時にcurrentNodeを設定
+                offsetX = e.clientX - node.getBoundingClientRect().left;
+                offsetY = e.clientY - node.getBoundingClientRect().top;
+                e.stopPropagation();
+            });
+        
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging && currentNode === node) {
+                    wasDragged = true; // 実際にマウスが動いたらドラッグと判定
+                    node.style.left = `${e.clientX - offsetX}px`;
+                    node.style.top = `${e.clientY - offsetY}px`;
+                    updateConnections();
+                }
+            });
+        
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    
+                    if (wasDragged) {
+                        const savedNode = currentNode;
+                        setTimeout(() => {
+                            currentNode = savedNode;
+                        }, 10);
+                    }
+                }
+            });
+
+        }
+
+        // 接続線をすべて更新する関数を修正
+        function updateConnections() {
+            const svg = document.getElementById('svg');
+            svg.innerHTML = '';
+            
+            // 関係のあるノードのみで線を描画
+            nodeRelations.forEach((parent, child) => {
+                drawLine(parent, child);
+            });
+        }
+
+        function drawLine(node1, node2) {
+            const svg = document.getElementById('svg');
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const x1 = node1.offsetLeft + (node1.offsetLeft < node2.offsetLeft ? node1.offsetWidth : 0);
+            const y1 = node1.offsetTop + node1.offsetHeight / 2;
+            const x2 = node2.offsetLeft + (node2.offsetLeft < node1.offsetLeft ? node2.offsetWidth : 0);
+            const y2 = node2.offsetTop + node2.offsetHeight / 2;
+            const d = `M ${x1} ${y1} C ${(x1 + x2) / 2} ${y1} ${(x1 + x2) / 2} ${y2} ${x2} ${y2}`;
+            line.setAttribute('d', d);
+            line.setAttribute('class', 'line');
+            svg.appendChild(line);
+        }
+    </script>
 </body>
 </html>

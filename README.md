@@ -1,41 +1,29 @@
-# My Mind Map App
+# Mind Map Application
 
-## Overview
-My Mind Map App is an interactive application designed to help users visually organize their thoughts and concepts through a mind map. The application allows users to create nodes, connect them, and edit their content, providing a flexible and intuitive way to manage ideas.
+This project is a simple mind map application built using HTML, CSS, and JavaScript. The application allows users to create and manage nodes in a mind map format.
 
 ## Features
-- Automatically creates a central node upon loading the application.
-- Users can create new nodes by clicking on existing nodes.
-- Nodes can be dragged and repositioned freely.
-- Text within nodes can be edited directly.
-- Connections between nodes are visually represented with lines that update dynamically as nodes are moved.
 
-## Project Structure
-```
-my-mindmap-app
-├── index.html        # Main HTML structure of the application
-├── css
-│   └── styles.css    # Styles for the application
-├── js
-│   └── app.js        # JavaScript functionality for the application
-└── README.md         # Documentation for the project
-```
+- Central starting node labeled "新しいノード" (New Node) that is editable.
+- Nodes are displayed with a size of 150px by 80px.
+- Background color of nodes is set to #eeeeee and the connecting lines are #000000.
+- Users can click on nodes to create new nodes connected by Bézier curves.
+- Nodes can be dragged and moved around the canvas.
+- New nodes cannot be created immediately after dragging to prevent accidental node creation.
 
-## Setup Instructions
-1. Clone the repository to your local machine.
-2. Open the `index.html` file in a web browser to view the application.
-3. Ensure that the `css/styles.css` and `js/app.js` files are correctly linked in the HTML file.
+## Usage
 
-## Usage Guidelines
-- Click on the blank area of a node to create a new child node.
-- Click on the text of a node to enter edit mode.
-- Drag nodes to reposition them as needed.
-- The connections between nodes will automatically adjust based on their positions.
+1. Open the `index.html` file in a web browser.
+2. Click on the central node to create new nodes.
+3. Edit the text of the nodes by clicking on them.
+4. Drag nodes to reposition them as needed.
 
 ## Technologies Used
+
 - HTML
 - CSS
 - JavaScript
 
 ## License
-This project is licensed under the MIT License.
+
+This project is open-source and available for anyone to use and modify.
